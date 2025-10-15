@@ -1,261 +1,233 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import Home from "./pages/Home";
+import MoodCheck from "./pages/MoodCheck";
+import Chatbot from "./pages/Chatbot";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
-// === HEADER ===
-function Header({ onNav }) {
-  return (
-    <header className="w-full bg-gradient-to-r from-sky-400 to-indigo-500 text-white p-4 shadow-lg">
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Serene — Mental Health</h1>
-        <nav className="space-x-4">
-          <button onClick={() => onNav("home")} className="px-3 py-2 rounded hover:bg-white/20">Home</button>
-          <button onClick={() => onNav("mood")} className="px-3 py-2 rounded hover:bg-white/20">Check Mood</button>
-          <button onClick={() => onNav("chat")} className="px-3 py-2 rounded hover:bg-white/20">Chat</button>
-          <button onClick={() => onNav("dashboard")} className="px-3 py-2 rounded hover:bg-white/20">Dashboard</button>
-        </nav>
-      </div>
-    </header>
-  );
-}
-
-// === HOME PAGE ===
-function Home({ onStart }) {
-  return (
-    <section className="max-w-6xl mx-auto p-6 grid md:grid-cols-2 gap-6 items-center">
-      <div>
-        <h2 className="text-3xl font-bold mb-3">Welcome to Serene</h2>
-        <p className="mb-4 text-gray-700">
-          A safe, private space to check-in, journal, and access tools to manage stress.
-          Designed with local relevance and gentle support in mind.
-        </p>
-        <ul className="list-disc ml-5 text-gray-700 mb-6">
-          <li>Quick mood checks (image or text)</li>
-          <li>24/7 AI companion for light conversations</li>
-          <li>Guided stress-relief tools and journaling</li>
-        </ul>
-        <div className="flex gap-3">
-          <button onClick={() => onStart("mood")} className="px-4 py-2 bg-sky-500 text-white rounded shadow">Check My Mood</button>
-          <button onClick={() => onStart("chat")} className="px-4 py-2 border border-sky-500 rounded">Chat with Bot</button>
-        </div>
-      </div>
-      <div className="bg-white rounded-2xl shadow p-6">
-        <h3 className="font-semibold mb-3">Daily Tip</h3>
-        <p className="text-gray-700 mb-4">
-          Take 90 seconds to breathe: inhale for 4, hold for 4, exhale for 6. Repeat 5 times.
-        </p>
-        <div className="space-y-3">
-          <div className="p-4 rounded bg-sky-50">Short guided breathing</div>
-          <div className="p-4 rounded bg-sky-50">5-minute grounding exercise</div>
-          <div className="p-4 rounded bg-sky-50">Journal prompt: "One thing I'm grateful for today"</div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// === MOOD CHECK PAGE ===
-function MoodCheck({ onResult }) {
-  const [image, setImage] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const fileRef = useRef();
-
-  function handleFile(e) {
-    const f = e.target.files[0];
-    if (!f) return;
-    const url = URL.createObjectURL(f);
-    setImage(url);
-  }
-
-  function analyze() {
-    if (!image) return alert("Please upload a selfie or an image.");
-    setLoading(true);
-    setTimeout(() => {
-      const emotions = [
-        { label: "Calm", score: 0.9 },
-        { label: "Happy", score: 0.85 },
-        { label: "Neutral", score: 0.7 },
-        { label: "Anxious", score: 0.6 },
-        { label: "Sad", score: 0.55 },
-        { label: "Stressed", score: 0.5 },
-      ];
-      const idx = Math.floor(Math.random() * emotions.length);
-      const result = emotions[idx];
-      setLoading(false);
-      onResult(result);
-      alert(`Detected: ${result.label} (${Math.round(result.score * 100)}%)`);
-    }, 900);
-  }
-
-  return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-semibold mb-4">Mood Check (Image)</h2>
-      <p className="text-gray-600 mb-4">
-        Upload a recent selfie to get a quick, private mood estimate.
-      </p>
-      <div className="bg-white p-6 rounded-lg shadow flex flex-col md:flex-row gap-6">
-        <div className="flex-1">
-          <div className="h-64 w-full border border-dashed rounded flex items-center justify-center overflow-hidden bg-gray-50">
-            {image ? (
-              <img src={image} alt="preview" className="object-cover h-full w-full" />
-            ) : (
-              <div className="text-gray-400">No image selected</div>
-            )}
-          </div>
-          <div className="mt-3 flex gap-3">
-            <input ref={fileRef} accept="image/*" type="file" onChange={handleFile} className="hidden" id="mood-file" />
-            <label htmlFor="mood-file" onClick={() => fileRef.current && fileRef.current.click()} className="px-4 py-2 bg-indigo-600 text-white rounded cursor-pointer">Upload Photo</label>
-            <button onClick={analyze} className="px-4 py-2 bg-sky-500 text-white rounded">Analyze</button>
-          </div>
-        </div>
-        <div className="w-80 bg-sky-50 p-4 rounded">
-          <h3 className="font-medium">Result</h3>
-          <div className="mt-3">{loading ? "Analyzing..." : "No analysis yet."}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// === CHATBOT PAGE ===
-function Chatbot() {
-  const [messages, setMessages] = useState([
-    { from: "bot", text: "Hello — I am Serene. How are you feeling today?" },
-  ]);
-  const [input, setInput] = useState("");
-  const bottomRef = useRef();
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  function send() {
-    if (!input.trim()) return;
-    const userMsg = { from: "user", text: input };
-    setMessages((m) => [...m, userMsg]);
-    setInput("");
-    setTimeout(() => {
-      const reply = cannedReply(userMsg.text);
-      setMessages((m) => [...m, { from: "bot", text: reply }]);
-    }, 700);
-  }
-
-  function cannedReply(text) {
-    const t = text.toLowerCase();
-    if (t.includes("sad") || t.includes("depress"))
-      return "I’m sorry you feel that way. Would you like a breathing exercise?";
-    if (t.includes("stress") || t.includes("anxious"))
-      return "Let’s do a quick grounding exercise together.";
-    return "Thanks for sharing. Tell me more, or type 'tools' to see stress-release activities.";
-  }
-
-  return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-semibold mb-4">Chat with Serene (AI Companion)</h2>
-      <div className="bg-white rounded-lg shadow p-4 flex flex-col h-[420px]">
-        <div className="flex-1 overflow-auto space-y-3 p-2">
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`max-w-[80%] ${
-                m.from === "bot" ? "bg-sky-50 self-start" : "bg-indigo-100 self-end"
-              } p-3 rounded-lg`}
-            >
-              {m.text}
-            </div>
-          ))}
-          <div ref={bottomRef} />
-        </div>
-        <div className="mt-3 flex gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="flex-1 border rounded p-2"
-            placeholder="Say something..."
-          />
-          <button onClick={send} className="px-4 py-2 bg-indigo-600 text-white rounded">
-            Send
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// === DASHBOARD PAGE ===
-function Dashboard({ emotion }) {
-  const sampleProgress = [
-    { label: "Stress", value: emotion?.label === "Stressed" ? 82 : 40 },
-    { label: "Anxiety", value: emotion?.label === "Anxious" ? 70 : 35 },
-    { label: "Mood", value: emotion?.label === "Happy" ? 88 : 60 },
-  ];
-
-  return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-2xl font-semibold mb-4">Your Dashboard</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {sampleProgress.map((s, i) => (
-          <div key={i} className="bg-white p-4 rounded shadow">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-medium">{s.label}</div>
-              <div className="text-sm text-gray-500">{s.value}%</div>
-            </div>
-            <div className="w-full bg-gray-100 h-3 rounded overflow-hidden">
-              <div
-                style={{ width: `${s.value}%` }}
-                className="h-full rounded bg-gradient-to-r from-sky-500 to-indigo-500"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="font-medium mb-2">Emotion History (last 7 checks)</h3>
-          <ul className="text-gray-700 list-disc ml-5">
-            <li>2025-10-08 — Neutral</li>
-            <li>2025-10-09 — Calm</li>
-            <li>2025-10-10 — Happy</li>
-            <li>2025-10-11 — {emotion?.label ?? "Not checked"}</li>
-          </ul>
-        </div>
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="font-medium mb-2">Recommended Toolkit</h3>
-          <div className="space-y-3 text-gray-700">
-            <div className="p-3 rounded bg-sky-50">5-minute breathing</div>
-            <div className="p-3 rounded bg-sky-50">Guided meditation (audio)</div>
-            <div className="p-3 rounded bg-sky-50">Write a 3-minute journal entry</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// === MAIN APP ===
 export default function App() {
   const [route, setRoute] = useState("home");
   const [emotion, setEmotion] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notification, setNotification] = useState({ message: "", type: "" });
+
+  // Show welcome notification on first load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      showNotificationMessage("Welcome to Serene! 🌟 Your mental wellness companion.", "info");
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const showNotificationMessage = (message, type) => {
+    setNotification({ message, type });
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 4000);
+  };
 
   function handleNav(r) {
-    setRoute(r);
+    setIsLoading(true);
+    
+    // Simulate loading between route changes
+    setTimeout(() => {
+      setRoute(r);
+      setIsLoading(false);
+      
+      // Show relevant notifications
+      if (r === "dashboard") {
+        showNotificationMessage("Welcome to your dashboard! 📊", "success");
+      } else if (r === "mood") {
+        showNotificationMessage("Let's check in with how you're feeling today 🎭", "info");
+      } else if (r === "chat") {
+        showNotificationMessage("Your AI companion is ready to chat! 🤖", "info");
+      }
+    }, 600);
   }
 
+  const handleEmotionResult = (emotionData) => {
+    setEmotion(emotionData);
+    showNotificationMessage(`Thanks for checking in! We detected you're feeling ${emotionData?.label?.toLowerCase() || 'neutral'} today.`, "success");
+    setRoute("dashboard");
+  };
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    showNotificationMessage(`Welcome back, ${userData?.username || 'User'}! 🌟`, "success");
+    setRoute("dashboard");
+  };
+
+  const handleSignup = (userData) => {
+    setUser(userData);
+    showNotificationMessage(`Account created successfully! Welcome to Serene, ${userData?.username || 'User'}! 🎉`, "success");
+    setRoute("dashboard");
+  };
+
+  // Route configuration with animations
+  const routeConfig = {
+    home: { component: <Home onStart={setRoute} />, animation: "slide-in-left" },
+    mood: { component: <MoodCheck onResult={handleEmotionResult} />, animation: "slide-in-right" },
+    chat: { component: <Chatbot />, animation: "slide-in-up" },
+    dashboard: { component: <Dashboard emotion={emotion} user={user} />, animation: "slide-in-down" },
+    login: { component: <Login onLogin={handleLogin} />, animation: "scale-in" },
+    signup: { component: <Signup onSignup={handleSignup} />, animation: "scale-in" }
+  };
+
+  const currentRoute = routeConfig[route];
+
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-200 via-sky-100 to-white">
-      <Header onNav={handleNav} />
-      <main className="flex-1 flex items-center justify-center py-10 px-2 md:px-0">
-        <div className="w-full max-w-5xl mx-auto">
-          <div className="rounded-3xl bg-white/70 backdrop-blur-lg shadow-2xl border border-sky-100 p-6 md:p-10 transition-all duration-300">
-            {route === "home" && <Home onStart={setRoute} />}
-            {route === "mood" && <MoodCheck onResult={setEmotion} />}
-            {route === "chat" && <Chatbot />}
-            {route === "dashboard" && <Dashboard emotion={emotion} />}
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200/10 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200/10 rounded-full blur-3xl animate-float-medium"></div>
+        <div className="absolute top-1/3 left-1/4 w-60 h-60 bg-cyan-200/10 rounded-full blur-2xl animate-float-fast"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-40 h-40 bg-pink-200/10 rounded-full blur-2xl animate-float-slow"></div>
+      </div>
+
+      {/* Notification System */}
+      <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
+        showNotification ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
+      }`}>
+        <div className={`px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-sm max-w-md mx-auto ${
+          notification.type === 'success' 
+            ? 'bg-gradient-to-r from-emerald-50 to-green-50 border-emerald-200 text-emerald-800' 
+            : 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200 text-blue-800'
+        }`}>
+          <div className="flex items-center space-x-3">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              notification.type === 'success' ? 'bg-emerald-100' : 'bg-blue-100'
+            }`}>
+              {notification.type === 'success' ? '✅' : '💡'}
+            </div>
+            <p className="font-medium text-sm">{notification.message}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-40 flex items-center justify-center transition-all duration-300">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-600 font-medium">Loading your experience...</p>
+          </div>
+        </div>
+      )}
+
+      <Header onNav={handleNav} currentRoute={route} user={user} />
+      
+      <main className="flex-1 flex items-center justify-center py-8 px-4 relative z-10">
+        <div className="w-full max-w-6xl mx-auto">
+          <div className={`rounded-3xl bg-white/80 backdrop-blur-lg shadow-2xl border border-white/20 p-6 md:p-8 lg:p-12 transition-all duration-500 transform ${
+            currentRoute?.animation === 'slide-in-left' ? 'animate-slide-in-left' :
+            currentRoute?.animation === 'slide-in-right' ? 'animate-slide-in-right' :
+            currentRoute?.animation === 'slide-in-up' ? 'animate-slide-in-up' :
+            currentRoute?.animation === 'slide-in-down' ? 'animate-slide-in-down' :
+            'animate-scale-in'
+          }`}>
+            {currentRoute?.component}
           </div>
         </div>
       </main>
-      <footer className="mt-8 py-6 bg-gradient-to-r from-indigo-400 via-sky-400 to-indigo-500 text-white text-center shadow-2xl rounded-t-3xl border-t border-indigo-200">
-        <span className="font-bold tracking-wide text-lg drop-shadow">© {new Date().getFullYear()} Serene — Built for mental wellbeing.</span>
-      </footer>
+
+      <Footer />
+
+      {/* Quick Action Fab */}
+      {route !== "home" && (
+        <div className="fixed bottom-6 right-6 z-30">
+          <div className="flex flex-col space-y-3">
+            <button
+              onClick={() => handleNav("home")}
+              className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 group"
+              title="Go Home"
+            >
+              <span className="text-xl group-hover:scale-110 transition-transform">🏠</span>
+            </button>
+            {user && (
+              <button
+                onClick={() => handleNav("dashboard")}
+                className="w-14 h-14 bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center text-white shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 group"
+                title="Dashboard"
+              >
+                <span className="text-xl group-hover:scale-110 transition-transform">📊</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Background Pattern */}
+      <div className="fixed inset-0 pointer-events-none opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(100, 116, 139, 0.15) 1px, transparent 0)`,
+          backgroundSize: '40px 40px'
+        }}></div>
+      </div>
+
+      <style jsx>{`
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        @keyframes float-medium {
+          0%, 100% { transform: translateX(0px) translateY(0px); }
+          33% { transform: translateX(10px) translateY(-15px); }
+          66% { transform: translateX(-5px) translateY(10px); }
+        }
+        @keyframes float-fast {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-10px) scale(1.05); }
+        }
+        @keyframes slide-in-left {
+          from { opacity: 0; transform: translateX(-30px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slide-in-right {
+          from { opacity: 0; transform: translateX(30px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slide-in-up {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slide-in-down {
+          from { opacity: 0; transform: translateY(-30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scale-in {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-float-slow {
+          animation: float-slow 8s ease-in-out infinite;
+        }
+        .animate-float-medium {
+          animation: float-medium 6s ease-in-out infinite;
+        }
+        .animate-float-fast {
+          animation: float-fast 4s ease-in-out infinite;
+        }
+        .animate-slide-in-left {
+          animation: slide-in-left 0.5s ease-out;
+        }
+        .animate-slide-in-right {
+          animation: slide-in-right 0.5s ease-out;
+        }
+        .animate-slide-in-up {
+          animation: slide-in-up 0.5s ease-out;
+        }
+        .animate-slide-in-down {
+          animation: slide-in-down 0.5s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.4s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
