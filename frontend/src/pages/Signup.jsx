@@ -227,40 +227,70 @@ export default function Signup({ onSignup }) {
               {/* Step 1: Account Information */}
               {currentStep === 1 && (
                 <div className="space-y-6 animate-fadeIn">
-                  <InputField
-                    label="Username"
+                    <div className="flex flex-col">
+                  <label>
+                    UserName
+                  </label>
+                  <input
+                    label="username"
                     type="text"
-                    value={username}
+
+                    
                     onChange={e => setUsername(e.target.value)}
-                    required
+                    
+                    fieldKey="username"
+                   
                     placeholder="Choose a unique username"
-                    minLength="3"
                   />
-                  <InputField
-                    label="Email Address"
-                    type="email"
-                    value={email}
+                   </div>
+                     <div className="flex flex-col">
+                  <label>
+                    Email
+                  </label>
+                  <input
+                    label="email"
+                    type="text"
+
+                    
                     onChange={e => setEmail(e.target.value)}
-                    required
-                    placeholder="your@email.com"
+                    
+                    fieldKey="email"
+                   
+                    placeholder="Choose a unique username"
                   />
-                  <InputField
-                    label="Password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
+                   </div>
+                     <div className="flex flex-col">
+                  <label>
+                    Password
+                  </label>
+                  <input
+                    label="pasword"
+                    type="text"
+
+                    
                     onChange={e => setPassword(e.target.value)}
-                    required
-                    placeholder="At least 6 characters"
-                    minLength="6"
+                    
+                    fieldKey="password"
+                   
+                    placeholder="Choose a unique username"
                   />
-                  <InputField
-                    label="Confirm Password"
-                    type={showPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
-                    required
-                    placeholder="Re-enter your password"
+                   </div>
+                   <div className="flex flex-col">
+                  <label>
+                    Confirm Password
+                  </label>
+                  <input
+                    label="cpassword"
+                    type="text"
+
+                    
+                    onChange={e => setPassword(e.target.value)}
+                    
+                    fieldKey="cpassword"
+                   
+                    placeholder="Choose a unique username"
                   />
+                   </div>
 
                   {/* Password Strength Indicator */}
                   {password && (

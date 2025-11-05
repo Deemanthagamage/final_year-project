@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -19,14 +19,81 @@ export default function Login({ onLogin }) {
     { number: 3, title: "Complete", icon: "✨" }
   ];
 
+  // Refs for continuous typing
+  const usernameRef = useRef(null);
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmRef = useRef(null);
+  const ageRef = useRef(null);
+  const marriedRef = useRef(null);
+  const employmentRef = useRef(null);
+
+  useEffect(() => {
+    // Focus first field of the current step when step changes
+    if (currentStep === 1) usernameRef.current?.focus();
+    if (currentStep === 2) ageRef.current?.focus();
+    if (currentStep === 3) {
+      // nothing to focus on review step
+    }
+  }, [currentStep]);
+
+  const handleKeyDown = (e, fieldKey) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    // Step 1 order
+    const step1 = ["username", "email", "password", "confirm"];
+    const step2 = ["age", "married", "employment"];
+
+    function focusField(key) {
+      switch (key) {
+        case "username": return usernameRef.current?.focus();
+        case "email": return emailRef.current?.focus();
+        case "password": return passwordRef.current?.focus();
+        case "confirm": return confirmRef.current?.focus();
+        case "age": return ageRef.current?.focus();
+        case "married": return marriedRef.current?.focus();
+        case "employment": return employmentRef.current?.focus();
+        default: return null;
+      }
+    }
+
+    if (currentStep === 1) {
+      const idx = step1.indexOf(fieldKey);
+      if (idx >= 0 && idx < step1.length - 1) {
+        focusField(step1[idx + 1]);
+      } else {
+        nextStep();
+      }
+      return;
+    }
+
+    if (currentStep === 2) {
+      const idx = step2.indexOf(fieldKey);
+      if (idx >= 0 && idx < step2.length - 1) {
+        focusField(step2[idx + 1]);
+      } else {
+        nextStep();
+      }
+      return;
+    }
+
+    // step 3: submit
+    if (currentStep === 3) {
+      handleSubmit(e);
+    }
+  };
+
   function handleSubmit(e) {
     e.preventDefault();
     setIsLoading(true);
 
     // Simulate API call
     setTimeout(() => {
+      // Ensure username is synced from uncontrolled input
+      const finalUsername = usernameRef.current?.value ?? username;
+      if (finalUsername !== username) setUsername(finalUsername);
       // Basic validation
-      if (!username || !email || !password || !confirmPassword) {
+      if (!finalUsername || !email || !password || !confirmPassword) {
         setError("Please fill in all required fields.");
         setIsLoading(false);
         return;
@@ -43,7 +110,7 @@ export default function Login({ onLogin }) {
       }
 
       setError("");
-      alert(`Welcome to DivineMind, ${username}!\nEmail: ${email}\nAge: ${age || "N/A"}\nMarried: ${married || "N/A"}\nEmployment: ${employment || "N/A"}`);
+      alert(`Welcome to DivineMind, ${finalUsername}!\nEmail: ${email}\nAge: ${age || "N/A"}\nMarried: ${married || "N/A"}\nEmployment: ${employment || "N/A"}`);
       if (onLogin) onLogin();
       setIsLoading(false);
     }, 1500);
@@ -51,6 +118,11 @@ export default function Login({ onLogin }) {
 
   const nextStep = () => {
     if (currentStep < 3) {
+      // If leaving step 1, sync username from uncontrolled input
+      if (currentStep === 1 && usernameRef.current) {
+        const val = usernameRef.current.value;
+        if (val !== username) setUsername(val);
+      }
       setCurrentStep(currentStep + 1);
     }
   };
@@ -61,7 +133,7 @@ export default function Login({ onLogin }) {
     }
   };
 
-  const InputField = ({ label, type, value, onChange, required = false, optional = false, ...props }) => (
+  const InputField = ({ label, type, value, onChange, required = false, optional = false, inputRef, fieldKey, defaultValue, ...props }) => (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-slate-700">
         {label} 
@@ -70,8 +142,11 @@ export default function Login({ onLogin }) {
       <div className="relative">
         <input
           type={type}
+          ref={inputRef}
           value={value}
           onChange={onChange}
+          defaultValue={defaultValue}
+          onKeyDown={(e) => handleKeyDown(e, fieldKey)}
           required={required}
           className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-slate-300"
           {...props}
@@ -89,15 +164,17 @@ export default function Login({ onLogin }) {
     </div>
   );
 
-  const SelectField = ({ label, value, onChange, options, optional = false }) => (
+  const SelectField = ({ label, value, onChange, options, optional = false, inputRef, fieldKey }) => (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-slate-700">
         {label} 
         {optional && <span className="text-slate-400 ml-1">(optional)</span>}
       </label>
       <select
+        ref={inputRef}
         value={value}
         onChange={onChange}
+        onKeyDown={(e) => handleKeyDown(e, fieldKey)}
         className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-slate-300 appearance-none cursor-pointer"
       >
         <option value="">Select an option</option>
@@ -165,42 +242,76 @@ export default function Login({ onLogin }) {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Step 1: Account Information */}
-              {currentStep === 1 && (
+              
                 <div className="space-y-6 animate-fadeIn">
-                  <InputField
-                    label="Username"
+                    <div className="flex flex-col">
+                  <label>
+                    UserName
+                  </label>
+                  <input
+                    label="username"
                     type="text"
-                    value={username}
+
+                    
                     onChange={e => setUsername(e.target.value)}
-                    required
+                    
+                    fieldKey="username"
+                   
                     placeholder="Choose a unique username"
                   />
-                  <InputField
-                    label="Email Address"
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                    placeholder="your@email.com"
+                   </div>
+                   <div className="flex flex-col">
+                  <label>
+                    Email
+                  </label>
+                  <input
+                    label="Email"
+                    type="text"
+
+                    
+                    onChange={e => setUsername(e.target.value)}
+                    
+                    fieldKey="Email"
+                   
+                    placeholder="Choose a unique username"
                   />
-                  <InputField
-                    label="Password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    placeholder="At least 6 characters"
+                   </div>
+                
+                 <div className="flex flex-col">
+                  <label>
+                    password
+                  </label>
+                  <input
+                    label="password"
+                    type="text"
+
+                    
+                    onChange={e => setUsername(e.target.value)}
+                    
+                    fieldKey="password"
+                   
+                    placeholder="Choose a unique username"
                   />
-                  <InputField
-                    label="Confirm Password"
-                    type={showPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={e => setConfirmPassword(e.target.value)}
-                    required
-                    placeholder="Re-enter your password"
+                   </div>
+                  <div className="flex flex-col">
+                  <label>
+                    confim password
+                  </label>
+                  <input
+                    label="cpassword"
+                    type="text"
+
+                    
+                    onChange={e => setUsername(e.target.value)}
+                    
+                    fieldKey="cpassword"
+                   
+                    placeholder="Choose a unique username"
                   />
+                   </div>
+                
                 </div>
-              )}
+              
 
               {/* Step 2: Profile Information */}
               {currentStep === 2 && (
@@ -210,6 +321,8 @@ export default function Login({ onLogin }) {
                     type="number"
                     value={age}
                     onChange={e => setAge(e.target.value)}
+                    inputRef={ageRef}
+                    fieldKey="age"
                     optional
                     placeholder="Your age"
                     min="0"
@@ -219,6 +332,8 @@ export default function Login({ onLogin }) {
                     label="Marital Status"
                     value={married}
                     onChange={e => setMarried(e.target.value)}
+                    inputRef={marriedRef}
+                    fieldKey="married"
                     options={[
                       { value: "Single", label: "Single" },
                       { value: "Married", label: "Married" },
@@ -231,6 +346,8 @@ export default function Login({ onLogin }) {
                     label="Employment Status"
                     value={employment}
                     onChange={e => setEmployment(e.target.value)}
+                    inputRef={employmentRef}
+                    fieldKey="employment"
                     options={[
                       { value: "Employed", label: "Employed" },
                       { value: "Unemployed", label: "Unemployed" },
