@@ -83,40 +83,85 @@ export default function Login({ onLogin }) {
     }
   };
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Ensure username is synced from uncontrolled input
-      const finalUsername = usernameRef.current?.value ?? username;
-      if (finalUsername !== username) setUsername(finalUsername);
-      // Basic validation
-      if (!finalUsername || !email || !password || !confirmPassword) {
-        setError("Please fill in all required fields.");
-        setIsLoading(false);
-        return;
-      }
-      if (password !== confirmPassword) {
-        setError("Passwords do not match.");
-        setIsLoading(false);
-        return;
-      }
-      if (password.length < 6) {
-        setError("Password must be at least 6 characters long.");
+    // Ensure username is synced from uncontrolled input
+    const finalUsername = usernameRef.current?.value ?? username;
+    if (finalUsername !== username) setUsername(finalUsername);
+    
+    // Basic validation
+    if (!finalUsername || !email || !password || !confirmPassword) {
+      setError("Please fill in all required fields.");
+      setIsLoading(false);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      setIsLoading(false);
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Call backend signup API (this is actually signup, not login)
+      const response = await fetch('http://localhost:4000/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          username: finalUsername, 
+          email, 
+          password, 
+          age, 
+          married, 
+          employment 
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Signup failed');
         setIsLoading(false);
         return;
       }
 
+      // After successful signup, log them in
+      const loginResponse = await fetch('http://localhost:4000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const loginData = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        setError(loginData.error || 'Login failed');
+        setIsLoading(false);
+        return;
+      }
+
+      // Store token in localStorage
+      localStorage.setItem('token', loginData.token);
+      localStorage.setItem('user', JSON.stringify(loginData.user));
+
       setError("");
-      alert(`Welcome to DivineMind, ${finalUsername}!\nEmail: ${email}\nAge: ${age || "N/A"}\nMarried: ${married || "N/A"}\nEmployment: ${employment || "N/A"}`);
+      alert(`Welcome to DivineMind, ${finalUsername}!`);
       if (onLogin) onLogin();
+    } catch (err) {
+      setError('Failed to connect to server: ' + err.message);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   }
 
   const nextStep = () => {
+    console.log("Continue button clicked. Current step:", currentStep);
     if (currentStep < 3) {
       // If leaving step 1, sync username from uncontrolled input
       if (currentStep === 1 && usernameRef.current) {
@@ -124,6 +169,7 @@ export default function Login({ onLogin }) {
         if (val !== username) setUsername(val);
       }
       setCurrentStep(currentStep + 1);
+      console.log("Moving to step:", currentStep + 1);
     }
   };
 
@@ -242,76 +288,66 @@ export default function Login({ onLogin }) {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Step 1: Account Information */}
-              
+              {currentStep === 1 && (
                 <div className="space-y-6 animate-fadeIn">
-                    <div className="flex flex-col">
-                  <label>
-                    UserName
-                  </label>
-                  <input
-                    label="username"
-                    type="text"
-
-                    
-                    onChange={e => setUsername(e.target.value)}
-                    
-                    fieldKey="username"
-                   
-                    placeholder="Choose a unique username"
-                  />
-                   </div>
-                   <div className="flex flex-col">
-                  <label>
-                    Email
-                  </label>
-                  <input
-                    label="Email"
-                    type="text"
-
-                    
-                    onChange={e => setUsername(e.target.value)}
-                    
-                    fieldKey="Email"
-                   
-                    placeholder="Choose a unique username"
-                  />
-                   </div>
-                
-                 <div className="flex flex-col">
-                  <label>
-                    password
-                  </label>
-                  <input
-                    label="password"
-                    type="text"
-
-                    
-                    onChange={e => setUsername(e.target.value)}
-                    
-                    fieldKey="password"
-                   
-                    placeholder="Choose a unique username"
-                  />
-                   </div>
-                  <div className="flex flex-col">
-                  <label>
-                    confim password
-                  </label>
-                  <input
-                    label="cpassword"
-                    type="text"
-
-                    
-                    onChange={e => setUsername(e.target.value)}
-                    
-                    fieldKey="cpassword"
-                   
-                    placeholder="Choose a unique username"
-                  />
-                   </div>
-                
+                  <div className="flex flex-col space-y-2">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Username
+                    </label>
+                    <input
+                      ref={usernameRef}
+                      type="text"
+                      defaultValue={username}
+                      onChange={e => setUsername(e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, "username")}
+                      className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-slate-300"
+                      placeholder="Choose a unique username"
+                    />
+                  </div>
+                  <div className="flex flex-col space-y-2">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Email
+                    </label>
+                    <input
+                      ref={emailRef}
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, "email")}
+                      className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-slate-300"
+                      placeholder="your.email@example.com"
+                    />
+                  </div>
+                  <div className="flex flex-col space-y-2">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Password
+                    </label>
+                    <input
+                      ref={passwordRef}
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, "password")}
+                      className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-slate-300"
+                      placeholder="At least 6 characters"
+                    />
+                  </div>
+                  <div className="flex flex-col space-y-2">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Confirm Password
+                    </label>
+                    <input
+                      ref={confirmRef}
+                      type={showPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={e => setConfirmPassword(e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, "confirm")}
+                      className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-slate-300"
+                      placeholder="Re-enter your password"
+                    />
+                  </div>
                 </div>
-              
+              )}
 
               {/* Step 2: Profile Information */}
               {currentStep === 2 && (

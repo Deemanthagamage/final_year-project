@@ -34,35 +34,49 @@ export default function Signup({ onSignup }) {
     { value: "Self-Employed", label: "Self-Employed" }
   ];
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Enhanced validation
-      if (!username || !email || !password || !confirmPassword) {
-        setError("Please fill in all required fields.");
-        setIsLoading(false);
-        return;
-      }
-      if (password !== confirmPassword) {
-        setError("Passwords do not match.");
-        setIsLoading(false);
-        return;
-      }
-      if (password.length < 6) {
-        setError("Password must be at least 6 characters long.");
-        setIsLoading(false);
-        return;
-      }
-      if (!validateEmail(email)) {
-        setError("Please enter a valid email address.");
-        setIsLoading(false);
-        return;
-      }
-      if (username.length < 3) {
-        setError("Username must be at least 3 characters long.");
+    // Enhanced validation
+    if (!username || !email || !password || !confirmPassword) {
+      setError("Please fill in all required fields.");
+      setIsLoading(false);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      setIsLoading(false);
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      setIsLoading(false);
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      setIsLoading(false);
+      return;
+    }
+    if (username.length < 3) {
+      setError("Username must be at least 3 characters long.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Call backend API
+      const response = await fetch('http://localhost:4000/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password, age, married, employment })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Signup failed');
         setIsLoading(false);
         return;
       }
@@ -78,8 +92,10 @@ export default function Signup({ onSignup }) {
       };
       
       if (onSignup) onSignup(userData);
+    } catch (err) {
+      setError('Failed to connect to server: ' + err.message);
       setIsLoading(false);
-    }, 1500);
+    }
   }
 
   const validateEmail = (email) => {
