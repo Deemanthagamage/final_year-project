@@ -161,7 +161,6 @@ export default function Login({ onLogin }) {
   }
 
   const nextStep = () => {
-    console.log("Continue button clicked. Current step:", currentStep);
     if (currentStep < 3) {
       // If leaving step 1, sync username from uncontrolled input
       if (currentStep === 1 && usernameRef.current) {
@@ -169,7 +168,6 @@ export default function Login({ onLogin }) {
         if (val !== username) setUsername(val);
       }
       setCurrentStep(currentStep + 1);
-      console.log("Moving to step:", currentStep + 1);
     }
   };
 
