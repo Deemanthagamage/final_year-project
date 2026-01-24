@@ -73,8 +73,8 @@ export default function App() {
     mood: { component: <MoodCheck onResult={handleEmotionResult} />, animation: "slide-in-right" },
     chat: { component: <Chatbot />, animation: "slide-in-up" },
     dashboard: { component: <Dashboard emotion={emotion} user={user} />, animation: "slide-in-down" },
-    login: { component: <Login onLogin={handleLogin} />, animation: "scale-in" },
-    signup: { component: <Signup onSignup={handleSignup} />, animation: "scale-in" }
+  login: { component: <Login onLogin={handleLogin} onNav={handleNav} />, animation: "scale-in" },
+  signup: { component: <Signup onSignup={handleSignup} onNav={handleNav} />, animation: "scale-in" }
   };
 
   const currentRoute = routeConfig[route];

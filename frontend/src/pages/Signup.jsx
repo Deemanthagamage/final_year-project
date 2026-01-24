@@ -471,7 +471,7 @@ export default function Signup({ onSignup }) {
             <div className="mt-8 pt-6 border-t border-slate-200">
               <p className="text-center text-sm text-slate-500">
                 Already have an account?{" "}
-                <button className="text-blue-600 font-semibold hover:text-blue-700 transition-colors">
+                <button onClick={() => onNav && onNav('login')} className="text-blue-600 font-semibold hover:text-blue-700 transition-colors">
                   Sign In
                 </button>
               </p>
