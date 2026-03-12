@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
+import assessmentRoutes from './routes/assessmentRoutes.js';
 
 dotenv.config();
 
@@ -43,6 +44,14 @@ app.post('/api/login', async (req, res) => {
 
 // Chatbot routes
 app.use('/api/chatbot', chatbotRoutes);
+
+// Assessment routes
+app.use('/api/assessment', assessmentRoutes);
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
 // Start server
 app.listen(PORT, () => {

@@ -15,6 +15,9 @@ export default function Chatbot() {
   async function send() {
     if (!input.trim() || isLoading) return;
     
+    console.log('=== SEND BUTTON CLICKED ===');
+    console.log('User message:', input);
+    
     const userMsg = { from: "user", text: input };
     setMessages((m) => [...m, userMsg]);
     const currentInput = input;
@@ -22,6 +25,9 @@ export default function Chatbot() {
     setIsLoading(true);
 
     try {
+      console.log('Sending request to: http://localhost:4000/api/chatbot/chat');
+      console.log('Request body:', { message: currentInput, conversationHistory: messages });
+      
       // Call backend chatbot API with Gemini
       const response = await fetch('http://localhost:4000/api/chatbot/chat', {
         method: 'POST',
@@ -32,15 +38,27 @@ export default function Chatbot() {
         })
       });
 
+      console.log('Response status:', response.status, response.statusText);
+      
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (!response.ok) {
+        console.error('Response not OK:', data);
         throw new Error(data.error || 'Failed to get response');
       }
 
+      console.log('Bot reply:', data.reply);
+      console.log('=== REQUEST COMPLETE ===');
+      
       setMessages((m) => [...m, { from: "bot", text: data.reply }]);
     } catch (error) {
-      console.error('Chat error:', error);
+      console.error('=== CHAT ERROR ===');
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Full error:', error);
+      console.error('==================');
+      
       setMessages((m) => [...m, { 
         from: "bot", 
         text: "I apologize, I'm having trouble connecting right now. Please try again in a moment." 

@@ -22,57 +22,54 @@ export const chatWithBot = async (req, res) => {
     // Initialize the new SDK
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Recommended current models (as of Jan 2026):
-    // - gemini-2.5-flash → best balance of speed & quality (stable)
-    // - gemini-2.5-flash-lite → fastest/cheapest
-    // - gemini-2.5-pro → more intelligent (if you need deeper responses)
-    // - gemini-3-flash-preview → newer, faster preview model
+    // System instruction for the mental health chatbot (will be prepended to first message)
+    const systemInstruction = "You are Serene, a compassionate mental health support chatbot. You provide empathetic listening, emotional support, simple mindfulness and breathing exercises, stress management tips, and positive affirmations. Keep responses short (2-3 sentences), calm, and encouraging. If the user mentions serious mental health issues, gently suggest seeking professional help.";
+
+    // Create model WITHOUT system instruction (Gemma doesn't support it)
+    // Using gemini-2.5-flash which supports systemInstruction
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro",
+      model: "gemini-2.5-flash",
+      systemInstruction: systemInstruction,
     });
 
-    // System instructions (better way in new SDK)
-    const systemInstruction = `
-You are Serene, a compassionate mental health support chatbot.
-You provide:
-- Empathetic listening
-- Emotional support
-- Simple mindfulness and breathing exercises
-- Stress management tips
-- Positive affirmations
-
-Keep responses short (2–3 sentences), calm, and encouraging.
-If the user mentions serious mental health issues, gently suggest seeking professional help.
-    `.trim();
-
     // Build chat history in the new format
+    // IMPORTANT: Gemini requires history to start with 'user' role, not 'model'
     const history = [];
 
     if (conversationHistory && Array.isArray(conversationHistory)) {
-      // Ensure history starts with 'user' role (Gemini API requirement)
+      // Get recent messages (last 10)
       let recentMessages = conversationHistory.slice(-10);
       
-      // Skip initial model messages to ensure we start with 'user'
-      let startIdx = 0;
-      for (let i = 0; i < recentMessages.length; i++) {
-        if (recentMessages[i].from === 'user') {
-          startIdx = i;
-          break;
+      // Filter: only include messages AFTER the first user message
+      // This removes the initial bot greeting
+      let foundFirstUser = false;
+      
+      for (const msg of recentMessages) {
+        if (msg.from === 'user') {
+          foundFirstUser = true;
+        }
+        
+        // Only add to history after we've found the first user message
+        if (foundFirstUser) {
+          history.push({
+            role: msg.from === "user" ? "user" : "model",
+            parts: [{ text: msg.text }],
+          });
         }
       }
       
-      recentMessages.slice(startIdx).forEach((msg) => {
-        history.push({
-          role: msg.from === "user" ? "user" : "model",
-          parts: [{ text: msg.text }],
-        });
-      });
+      // If history still starts with model, remove leading model messages
+      while (history.length > 0 && history[0].role === 'model') {
+        history.shift();
+      }
     }
 
-    // Start chat session with system instruction
+    console.log('Processed history length:', history.length);
+    console.log('History roles:', history.map(h => h.role));
+
+    // Start chat session
     const chat = model.startChat({
       history,
-      systemInstruction: { parts: [{ text: systemInstruction }] },
       generationConfig: {
         temperature: 0.7,
         maxOutputTokens: 180,  // keep short
