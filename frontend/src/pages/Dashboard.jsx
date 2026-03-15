@@ -59,6 +59,13 @@ const WELLNESS_ACTIVITIES = [
   }
 ];
 
+const ACTIVITY_GUIDES = {
+  "Breathing Exercise": "Sit comfortably, relax your shoulders, and inhale through your nose for 4 seconds. Hold for 2 seconds, then exhale slowly for 6 seconds. Repeat this cycle for 5 minutes while keeping your focus on your breath.",
+  "Guided Meditation": "Close your eyes and bring attention to your body. Notice sounds and thoughts without judging them, then return focus to your breathing. Continue for 10 minutes with gentle awareness.",
+  "Gratitude Journal": "Write three specific things you are grateful for today. Add one sentence on why each one mattered to you. This helps shift attention toward positive emotional anchors.",
+  "Body Scan": "Starting from your head and moving to your toes, observe each body area slowly. Notice tension and soften those areas with deep exhalations. Continue until your full body feels calmer and grounded."
+};
+
 const EMOTION_CONFIG = {
   Stressed: { icon: "😰", color: "from-red-400 to-pink-500", bg: "bg-red-50", text: "text-red-700" },
   Anxious: { icon: "😟", color: "from-amber-400 to-orange-500", bg: "bg-amber-50", text: "text-amber-700" },
@@ -67,11 +74,19 @@ const EMOTION_CONFIG = {
   Neutral: { icon: "😐", color: "from-slate-400 to-gray-500", bg: "bg-slate-50", text: "text-slate-700" }
 };
 
-export default function AdvancedDashboard({ emotion }) {
+export default function AdvancedDashboard({ emotion, user }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [showActivityGuide, setShowActivityGuide] = useState(false);
   const [moodData, setMoodData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const dashboardBackground = {
+    backgroundImage:
+      "linear-gradient(rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 0.9)), url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80')",
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed'
+  };
 
   useEffect(() => {
     // Simulate data loading
@@ -107,7 +122,7 @@ export default function AdvancedDashboard({ emotion }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-purple-50/20 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={dashboardBackground}>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-600">Loading your wellness data...</p>
@@ -118,9 +133,16 @@ export default function AdvancedDashboard({ emotion }) {
 
   const progressData = getProgressData();
   const currentEmotion = emotion?.label ? EMOTION_CONFIG[emotion.label] : EMOTION_CONFIG.Neutral;
+  const displayName = user?.name || user?.username || "User";
+  const avatarInitials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("") || "U";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-purple-50/20">
+    <div className="min-h-screen" style={dashboardBackground}>
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200/10 rounded-full blur-3xl"></div>
@@ -147,7 +169,7 @@ export default function AdvancedDashboard({ emotion }) {
               </div>
             </div>
             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-semibold shadow-lg">
-              JS
+              {avatarInitials}
             </div>
           </div>
         </header>
@@ -159,7 +181,7 @@ export default function AdvancedDashboard({ emotion }) {
             <div className="bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/20">
               <div className="flex items-start justify-between mb-8">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-800 mb-2">Welcome back, John! 👋</h2>
+                  <h2 className="text-2xl font-bold text-slate-800 mb-2">Welcome back, {displayName}! 👋</h2>
                   <p className="text-slate-600 max-w-md">
                     {emotion?.label 
                       ? `You're feeling ${emotion.label.toLowerCase()} today. Here are some personalized recommendations.`
@@ -255,7 +277,10 @@ export default function AdvancedDashboard({ emotion }) {
               {WELLNESS_ACTIVITIES.map((activity) => (
                 <div 
                   key={activity.id}
-                  onClick={() => setSelectedActivity(activity)}
+                  onClick={() => {
+                    setSelectedActivity(activity);
+                    setShowActivityGuide(false);
+                  }}
                   className="group p-4 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 cursor-pointer transform hover:scale-[1.02]"
                 >
                   <div className="flex items-center space-x-4">
@@ -399,15 +424,30 @@ export default function AdvancedDashboard({ emotion }) {
               
               <div className="flex space-x-3">
                 <button 
-                  onClick={() => setSelectedActivity(null)}
+                  onClick={() => {
+                    setSelectedActivity(null);
+                    setShowActivityGuide(false);
+                  }}
                   className="flex-1 bg-slate-100 text-slate-700 py-3 rounded-2xl font-semibold hover:bg-slate-200 transition-colors"
                 >
                   Maybe Later
                 </button>
-                <button className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-2xl font-semibold hover:shadow-lg transition-all">
+                <button
+                  onClick={() => setShowActivityGuide(true)}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-2xl font-semibold hover:shadow-lg transition-all"
+                >
                   Start Now
                 </button>
               </div>
+
+              {showActivityGuide && (
+                <div className="mt-4 text-left bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                  <div className="text-sm font-semibold text-blue-800 mb-1">How to start</div>
+                  <p className="text-sm text-blue-700">
+                    {ACTIVITY_GUIDES[selectedActivity.name] || selectedActivity.description}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

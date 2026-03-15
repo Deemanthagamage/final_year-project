@@ -3,6 +3,19 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 dotenv.config();
 
+const ensureFollowUpQuestion = (text) => {
+  const safeText = (text || "").trim();
+  if (!safeText) {
+    return "I'm here to listen. What has been on your mind today?";
+  }
+
+  if (safeText.includes("?")) {
+    return safeText;
+  }
+
+  return `${safeText} What feels most difficult for you right now?`;
+};
+
 export const chatWithBot = async (req, res) => {
   try {
     const { message, conversationHistory } = req.body;
@@ -23,7 +36,7 @@ export const chatWithBot = async (req, res) => {
     const genAI = new GoogleGenerativeAI(apiKey);
 
     // System instruction for the mental health chatbot (will be prepended to first message)
-    const systemInstruction = "You are Serene, a compassionate mental health support chatbot. You provide empathetic listening, emotional support, simple mindfulness and breathing exercises, stress management tips, and positive affirmations. Keep responses short (2-3 sentences), calm, and encouraging. If the user mentions serious mental health issues, gently suggest seeking professional help.";
+    const systemInstruction = "You are Serene, a compassionate mental health support chatbot. You provide empathetic listening, emotional support, simple mindfulness and breathing exercises, stress management tips, and positive affirmations. Keep responses short (2-3 sentences), calm, and encouraging. Always end with one gentle follow-up question to keep the conversation going. If the user mentions serious mental health issues, gently suggest seeking professional help and ask if they can reach a trusted person now.";
 
     // Create model WITHOUT system instruction (Gemma doesn't support it)
     // Using gemini-2.5-flash which supports systemInstruction
@@ -84,7 +97,7 @@ export const chatWithBot = async (req, res) => {
 
     // Send message and get reply
     const result = await chat.sendMessage(message);
-    const botReply = result.response.text().trim();
+    const botReply = ensureFollowUpQuestion(result.response.text());
 
     return res.status(200).json({
       message: "Success",
@@ -98,8 +111,9 @@ export const chatWithBot = async (req, res) => {
     console.error("API Key present:", !!process.env.GEMINI_API_KEY);
     console.error("=====================");
 
-    const fallbackReply =
-      "I'm here with you. If things feel heavy right now, try taking a slow breath in for 4 seconds, hold for 4, and breathe out gently for 6.";
+    const fallbackReply = ensureFollowUpQuestion(
+      "I'm here with you. If things feel heavy right now, try taking a slow breath in for 4 seconds, hold for 4, and breathe out gently for 6."
+    );
 
     return res.status(200).json({
       message: "Fallback",

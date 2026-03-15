@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import MoodCheck from "./pages/MoodCheck";
 import Chatbot from "./pages/Chatbot";
 import Dashboard from "./pages/Dashboard";
+import Journal from "./pages/Journal";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
@@ -13,8 +14,57 @@ export default function App() {
   const [emotion, setEmotion] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark" || savedTheme === "light") {
+      return savedTheme;
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
   const [showNotification, setShowNotification] = useState(false);
   const [notification, setNotification] = useState({ message: "", type: "" });
+
+  useEffect(() => {
+    const hydrateUserFromDatabase = async () => {
+      const savedUser = localStorage.getItem("currentUser");
+      if (!savedUser) return;
+
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        if (!parsedUser?.id) {
+          setUser(parsedUser);
+          return;
+        }
+
+        const response = await fetch(`http://localhost:4000/api/auth/students/${parsedUser.id}`);
+        if (!response.ok) {
+          setUser(parsedUser);
+          return;
+        }
+
+        const dbUser = await response.json();
+        const normalizedUser = {
+          id: dbUser._id || parsedUser.id,
+          name: dbUser.name || parsedUser.name || parsedUser.username || "User",
+          username: dbUser.name || parsedUser.username || parsedUser.name || "User",
+          email: dbUser.email || parsedUser.email || "",
+          loginDate: parsedUser.loginDate || new Date().toLocaleDateString()
+        };
+
+        setUser(normalizedUser);
+        localStorage.setItem("currentUser", JSON.stringify(normalizedUser));
+      } catch (error) {
+        console.error("Failed to load user from database:", error);
+      }
+    };
+
+    hydrateUserFromDatabase();
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   // Show welcome notification on first load
   useEffect(() => {
@@ -45,6 +95,8 @@ export default function App() {
         showNotificationMessage("Let's check in with how you're feeling today 🎭", "info");
       } else if (r === "chat") {
         showNotificationMessage("Your AI companion is ready to chat! 🤖", "info");
+      } else if (r === "journal") {
+        showNotificationMessage("Take a mindful pause and write your thoughts 📝", "info");
       }
     }, 600);
   }
@@ -57,30 +109,41 @@ export default function App() {
 
   const handleLogin = (userData) => {
     setUser(userData);
-    showNotificationMessage(`Welcome back, ${userData?.username || 'User'}! 🌟`, "success");
+    localStorage.setItem("currentUser", JSON.stringify(userData));
+    showNotificationMessage(`Welcome back, ${userData?.name || userData?.username || 'User'}! 🌟`, "success");
     setRoute("dashboard");
   };
 
   const handleSignup = (userData) => {
     setUser(userData);
-    showNotificationMessage(`Account created successfully! Welcome to Serene, ${userData?.username || 'User'}! 🎉`, "success");
+    localStorage.setItem("currentUser", JSON.stringify(userData));
+    showNotificationMessage(`Account created successfully! Welcome to Serene, ${userData?.name || userData?.username || 'User'}! 🎉`, "success");
     setRoute("dashboard");
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem("currentUser");
+    showNotificationMessage("You have been logged out successfully.", "info");
+    setRoute("login");
   };
 
   // Route configuration with animations
   const routeConfig = {
-    home: { component: <Home onStart={setRoute} />, animation: "slide-in-left" },
+    home: { component: <Home onStart={setRoute} theme={theme} />, animation: "slide-in-left" },
     mood: { component: <MoodCheck onResult={handleEmotionResult} />, animation: "slide-in-right" },
-    chat: { component: <Chatbot />, animation: "slide-in-up" },
+    chat: { component: <Chatbot onNavigate={handleNav} />, animation: "slide-in-up" },
+    journal: { component: <Journal />, animation: "slide-in-up" },
     dashboard: { component: <Dashboard emotion={emotion} user={user} />, animation: "slide-in-down" },
   login: { component: <Login onLogin={handleLogin} onNav={handleNav} />, animation: "scale-in" },
   signup: { component: <Signup onSignup={handleSignup} onNav={handleNav} />, animation: "scale-in" }
   };
 
   const currentRoute = routeConfig[route];
+  const toggleTheme = () => setTheme((prev) => (prev === "dark" ? "light" : "dark"));
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 relative overflow-hidden">
+    <div className="app-shell min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200/10 rounded-full blur-3xl animate-float-slow"></div>
@@ -91,7 +154,7 @@ export default function App() {
 
       {/* Notification System */}
       <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
-        showNotification ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
+        showNotification ? 'translate-y-0 opacity-100 pointer-events-auto' : '-translate-y-4 opacity-0 pointer-events-none'
       }`}>
         <div className={`px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-sm max-w-md mx-auto ${
           notification.type === 'success' 
@@ -119,7 +182,14 @@ export default function App() {
         </div>
       )}
 
-      <Header onNav={handleNav} currentRoute={route} user={user} />
+      <Header
+        onNav={handleNav}
+        currentRoute={route}
+        user={user}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onLogout={handleLogout}
+      />
       
       <main className="flex-1 flex items-center justify-center py-8 px-4 relative z-10">
         <div className="w-full max-w-6xl mx-auto">

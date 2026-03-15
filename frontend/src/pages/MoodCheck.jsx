@@ -86,6 +86,22 @@ export default function MoodCheck() {
     setResults(null);
   };
 
+  const openEmergencyDoctors = () => {
+    window.open(
+      'https://www.google.com/search?q=mental+health+emergency+doctors+near+me',
+      '_blank',
+      'noopener,noreferrer'
+    );
+  };
+
+  const openMentalHealthActivities = () => {
+    window.open(
+      'https://www.google.com/search?q=mental+health+activities+for+stress+relief',
+      '_blank',
+      'noopener,noreferrer'
+    );
+  };
+
   // Handle Enter key press
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -94,6 +110,30 @@ export default function MoodCheck() {
         submitAnswer();
       }
     }
+  };
+
+  const getScoreNotification = (score) => {
+    if (score <= 20) {
+      return {
+        title: 'Immediate Support Recommended',
+        message: 'Your score is between 0-20%. Please meet a doctor as soon as possible for professional support.',
+        style: 'bg-red-50 border-red-200 text-red-800'
+      };
+    }
+
+    if (score <= 50) {
+      return {
+        title: 'Professional Help + Activities Recommended',
+        message: 'Your score is between 20-50%. Please consult a doctor and start regular mental health activities.',
+        style: 'bg-amber-50 border-amber-200 text-amber-800'
+      };
+    }
+
+    return {
+      title: 'Activity-Based Improvement Recommended',
+      message: 'Your score is between 50-100%. Continue with mental health activities to maintain and improve wellbeing.',
+      style: 'bg-emerald-50 border-emerald-200 text-emerald-800'
+    };
   };
 
   return (
@@ -174,6 +214,16 @@ export default function MoodCheck() {
 
       {assessmentState === 'completed' && results && (
         <div className="bg-white rounded-lg shadow-lg p-8">
+          {(() => {
+            const scoreNotice = getScoreNotification(Number(results.score) || 0);
+            return (
+              <div className={`mb-6 border rounded-lg p-4 ${scoreNotice.style}`}>
+                <div className="font-semibold mb-1">{scoreNotice.title}</div>
+                <p className="text-sm leading-relaxed">{scoreNotice.message}</p>
+              </div>
+            );
+          })()}
+
           <div className="text-center mb-8">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">Assessment Complete!</h3>
             <div className="inline-flex items-center space-x-4">
@@ -211,12 +261,24 @@ export default function MoodCheck() {
             </div>
           </div>
 
-          <div className="text-center space-x-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
             <button
               onClick={resetAssessment}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors md:justify-self-start"
             >
-              Take Another Assessment
+              Take Another Assistmence
+            </button>
+            <button
+              onClick={openEmergencyDoctors}
+              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors md:justify-self-center"
+            >
+              Emerce Doctors
+            </button>
+            <button
+              onClick={openMentalHealthActivities}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors md:justify-self-end"
+            >
+              Mental Health Activities
             </button>
           </div>
 

@@ -24,7 +24,7 @@ export default function Login({ onLogin }) {
       const response = await fetch('http://localhost:4000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, email: username, password })
       });
 
       const data = await response.json();
@@ -36,9 +36,13 @@ export default function Login({ onLogin }) {
       }
 
       setError("");
+      const apiUser = data.user || data.student || {};
+      const resolvedName = apiUser.name || apiUser.username || username;
       const userData = {
-        username: data.user.username,
-        email: data.user.email,
+        id: apiUser.id || apiUser._id || null,
+        name: resolvedName,
+        username: apiUser.username || resolvedName,
+        email: apiUser.email || "",
         loginDate: new Date().toLocaleDateString()
       };
       
@@ -73,7 +77,7 @@ export default function Login({ onLogin }) {
 
             <div style={styles.inputGroup}>
               <label style={styles.label}>
-                <span style={styles.labelText}>Username</span>
+                <span style={styles.labelText}>Username or Email</span>
                 <span style={styles.required}>*</span>
               </label>
               <div style={styles.inputWrapper}>
@@ -83,7 +87,7 @@ export default function Login({ onLogin }) {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   style={styles.input}
-                  placeholder="Enter your username"
+                  placeholder="Enter your username or email"
                   required
                 />
               </div>

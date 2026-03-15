@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
-export default function Home({ onStart }) {
+export default function Home({ onStart, theme }) {
   const [currentTip, setCurrentTip] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const pageBackground = {
+    backgroundImage:
+      theme === 'dark'
+        ? "linear-gradient(rgba(7, 11, 20, 0.82), rgba(15, 23, 42, 0.78)), url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1600&q=80')"
+        : "linear-gradient(rgba(248, 250, 252, 0.93), rgba(241, 245, 249, 0.9)), url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1600&q=80')",
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed'
+  };
 
   const tips = [
     {
@@ -39,13 +48,24 @@ export default function Home({ onStart }) {
       icon: "🌍",
       description: "5-senses grounding technique",
       type: "grounding"
+    }
+  ];
+
+  const wellnessImages = [
+    {
+      src: "https://images.unsplash.com/photo-1474418397713-7ede21d49118?auto=format&fit=crop&w=700&q=80",
+      alt: "Person meditating near calm water",
+      label: "Mindfulness"
     },
     {
-      title: "Gratitude Journal",
-      duration: "3 min",
-      icon: "📖",
-      description: "Quick gratitude reflection",
-      type: "journal"
+      src: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&w=700&q=80",
+      alt: "Person journaling in a peaceful setting",
+      label: "Journaling"
+    },
+    {
+      src: "https://images.unsplash.com/photo-1528715471579-d1bcf0ba5e83?auto=format&fit=crop&w=700&q=80",
+      alt: "Supportive conversation between friends",
+      label: "Support"
     }
   ];
 
@@ -58,7 +78,7 @@ export default function Home({ onStart }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+    <div className="min-h-screen" style={pageBackground}>
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200/10 rounded-full blur-3xl"></div>
@@ -122,6 +142,19 @@ export default function Home({ onStart }) {
                   <div className="text-slate-600 text-sm">Stress-relief exercises and journaling prompts</div>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={() => onStart("journal")}
+                className="w-full text-left flex items-center space-x-4 p-4 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/20 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all duration-300 group cursor-pointer"
+              >
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-500 rounded-xl flex items-center justify-center text-white text-lg group-hover:scale-110 transition-transform">
+                  📖
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-800">Journals</div>
+                  <div className="text-slate-600 text-sm">Stress-relief exercises and journaling prompts</div>
+                </div>
+              </button>
             </div>
 
             {/* Action Buttons */}
@@ -146,6 +179,28 @@ export default function Home({ onStart }) {
                   <span className="group-hover:scale-110 transition-transform">🎭</span>
                 </span>
               </button>
+
+              
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              {wellnessImages.map((image, index) => (
+                <div
+                  key={image.label}
+                  className="wellness-card-animate relative rounded-2xl overflow-hidden border border-white/30 shadow-md group"
+                  style={{ animationDelay: `${index * 120}ms` }}
+                >
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    className="w-full h-28 object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/55 to-transparent"></div>
+                  <span className="absolute bottom-2 left-3 text-white text-sm font-semibold tracking-wide">
+                    {image.label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -241,6 +296,17 @@ export default function Home({ onStart }) {
         {/* Bottom CTA */}
         <div className={`mt-16 text-center transition-all duration-700 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
+            <div className="hidden md:flex justify-center gap-4 mb-6">
+              {wellnessImages.slice(0, 2).map((image, index) => (
+                <img
+                  key={`cta-${image.label}`}
+                  src={image.src}
+                  alt={image.alt}
+                  className="cta-image-animate w-20 h-20 rounded-2xl object-cover border-2 border-white/50 shadow-md"
+                  style={{ animationDelay: `${index * 180}ms` }}
+                />
+              ))}
+            </div>
             <h3 className="text-2xl font-bold text-slate-800 mb-4">Ready to Begin Your Wellness Journey?</h3>
             <p className="text-slate-600 mb-6 max-w-2xl mx-auto">
               Join thousands who have found peace and balance through daily mindfulness practices and supportive conversations.

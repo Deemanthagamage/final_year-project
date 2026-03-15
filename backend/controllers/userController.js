@@ -48,22 +48,28 @@ export const signupUser = async (req, res) => {
 // Login user (frontend compatible)
 export const loginUser = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, email, password } = req.body;
+    const identifier = (username || email || '').trim();
 
     // Validation
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Username/email and password are required' });
     }
 
-    // Find user by username (name field in database)
-    const student = await Student.findOne({ name: username });
+    // Allow login by username or email
+    const student = await Student.findOne({
+      $or: [
+        { name: identifier },
+        { email: identifier.toLowerCase() },
+      ],
+    });
     if (!student) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid username/email or password' });
     }
 
     // Compare password
     if (student.password !== password) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid username/email or password' });
     }
 
     res.status(200).json({

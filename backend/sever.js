@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
 import assessmentRoutes from './routes/assessmentRoutes.js';
+import userChatRoutes from './routes/userChatRoutes.js';
 
 dotenv.config();
 
@@ -48,10 +49,8 @@ app.use('/api/chatbot', chatbotRoutes);
 // Assessment routes
 app.use('/api/assessment', assessmentRoutes);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// User-to-user chat routes
+app.use('/api/user-chat', userChatRoutes);
 
 // Start server
 app.listen(PORT, () => {

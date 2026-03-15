@@ -82,9 +82,13 @@ export default function Signup({ onSignup }) {
       }
 
       setError("");
+      const apiUser = data.user || data.student || {};
+      const resolvedName = apiUser.name || apiUser.username || username;
       const userData = {
-        username,
-        email,
+        id: apiUser.id || apiUser._id || null,
+        name: resolvedName,
+        username: apiUser.username || resolvedName,
+        email: apiUser.email || email,
         age: age || "Not specified",
         married: married || "Not specified",
         employment: employment || "Not specified",
