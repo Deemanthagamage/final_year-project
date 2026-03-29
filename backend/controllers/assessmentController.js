@@ -6,16 +6,16 @@ dotenv.config();
 
 // Pre-defined mental health assessment questions
 const ASSESSMENT_QUESTIONS = [
-  "How would you rate your overall mood in the past week? (1-10)",
-  "How often do you feel stressed or anxious during a typical day?",
-  "How well have you been sleeping recently? Describe your sleep patterns.",
-  "Do you find yourself enjoying activities you used to love? Explain.",
-  "How would you describe your energy levels throughout the day?",
-  "How often do you feel overwhelmed by daily tasks and responsibilities?",
-  "How connected do you feel to your friends and family?",
-  "Have you been experiencing any persistent negative thoughts? Describe them.",
-  "How do you typically cope with difficult situations or emotions?",
-  "On a scale of 1-10, how hopeful do you feel about your future?"
+  "How often have you been upset because of something that happened unexpectedly in the last month?",
+  "how often have you felt that you were unable to control the importtant things in your life in the last month?",
+  "how often have you felt nervous and stressed in the last month?",
+  "how often have you felt confident about your ability to handle your personal problems in the last month?",
+  "how often have you felt that things were going your way in the last month?",
+  "how often have you found that you could not cope with all the things that you had to do in the last month?",
+  "how often have you found that you could not cope with  all thee things that you had to do in the last month?",
+  "how often have you felt that you were on top of things in the last month?",
+  "how often have you felt difficulties were pilling up so high that you could not overcome them in the last month?",
+  "how often have you felt that were you were unable to control your anger in the last month?"
 ];
 
 // Start new assessment

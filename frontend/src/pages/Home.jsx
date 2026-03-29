@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import BreathingExercise from '../components/BreathingExercise';
 
 export default function Home({ onStart, theme }) {
   const [currentTip, setCurrentTip] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [showBreathingGuide, setShowBreathingGuide] = useState(false);
   const pageBackground = {
     backgroundImage:
       theme === 'dark'
@@ -76,6 +78,17 @@ export default function Home({ onStart, theme }) {
     }, 5000);
     return () => clearInterval(tipInterval);
   }, []);
+
+  const handleQuickToolClick = (toolType) => {
+    if (toolType === "breathing") {
+      setShowBreathingGuide(true);
+      return;
+    }
+
+    if (toolType === "grounding") {
+      onStart("mood");
+    }
+  };
 
   return (
     <div className="min-h-screen" style={pageBackground}>
@@ -160,7 +173,7 @@ export default function Home({ onStart, theme }) {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button 
-                onClick={() => navigate("/mood")}
+                onClick={() => onStart("mood")}
                 className="group relative bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -251,8 +264,10 @@ export default function Home({ onStart, theme }) {
               
               <div className="space-y-4">
                 {quickTools.map((tool, index) => (
-                  <div 
+                  <button
+                    type="button"
                     key={tool.title}
+                    onClick={() => handleQuickToolClick(tool.type)}
                     className="group p-4 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer transition-all duration-300 transform hover:scale-[1.02]"
                   >
                     <div className="flex items-center justify-between">
@@ -278,7 +293,7 @@ export default function Home({ onStart, theme }) {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
 
@@ -317,6 +332,12 @@ export default function Home({ onStart, theme }) {
           </div>
         </div>
       </div>
+
+      {showBreathingGuide && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <BreathingExercise onClose={() => setShowBreathingGuide(false)} />
+        </div>
+      )}
     </div>
   );
 }

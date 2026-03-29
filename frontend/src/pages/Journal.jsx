@@ -58,20 +58,39 @@ const REPORT_INSIGHTS = [
 export default function Journal() {
   const [entry, setEntry] = useState("");
   const [savedAt, setSavedAt] = useState(null);
+  const [showReports, setShowReports] = useState(false);
+  const [entries, setEntries] = useState([]);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const handleSave = () => {
     if (!entry.trim()) {
       return;
     }
 
+    // Add entry with timestamp
+    const newEntry = {
+      id: Date.now(),
+      message: entry,
+      timestamp: new Date()
+    };
+    setEntries([newEntry, ...entries]); // Add to beginning of list
     setSavedAt(new Date());
+    setEntry(""); // Clear input after saving
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-slate-800">Journal</h2>
-        <p className="text-slate-600 mt-2">Write freely. This is your private reflection space.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-800">Journal</h2>
+          <p className="text-slate-600 mt-2">Write freely. This is your private reflection space.</p>
+        </div>
+        <button
+          onClick={() => setShowReports(!showReports)}
+          className="text-xs font-medium text-slate-500 hover:text-slate-700 underline"
+        >
+          {showReports ? "Hide" : "Show"} Reports
+        </button>
       </div>
 
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/30 shadow-sm">
@@ -83,64 +102,108 @@ export default function Journal() {
         </ul>
       </div>
 
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/30 shadow-sm space-y-5">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-slate-800">Mental Health Report</h3>
-          <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">Weekly Snapshot</span>
-        </div>
+      {showReports && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/30 shadow-sm space-y-5">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-slate-800">Mental Health Report</h3>
+            <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">Weekly Snapshot</span>
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {REPORT_CARDS.map((card) => (
-            <div key={card.title} className="rounded-2xl border border-slate-100 p-4 bg-white/70 shadow-sm">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="text-sm text-slate-500">{card.title}</div>
-                  <div className="text-xl font-bold text-slate-800 mt-1">{card.value}</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {REPORT_CARDS.map((card) => (
+              <div key={card.title} className="rounded-2xl border border-slate-100 p-4 bg-white/70 shadow-sm">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="text-sm text-slate-500">{card.title}</div>
+                    <div className="text-xl font-bold text-slate-800 mt-1">{card.value}</div>
+                  </div>
+                  <div className={`w-10 h-10 rounded-xl text-white flex items-center justify-center bg-gradient-to-r ${card.color}`}>
+                    {card.icon}
+                  </div>
                 </div>
-                <div className={`w-10 h-10 rounded-xl text-white flex items-center justify-center bg-gradient-to-r ${card.color}`}>
-                  {card.icon}
-                </div>
+                <div className="text-sm text-slate-600">{card.trend}</div>
               </div>
-              <div className="text-sm text-slate-600">{card.trend}</div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {REPORT_INSIGHTS.map((insight) => (
+              <div key={insight.title} className="rounded-2xl border border-slate-100 p-4 bg-gradient-to-br from-white to-slate-50/70">
+                <div className="text-xl mb-2">{insight.icon}</div>
+                <div className="font-semibold text-slate-800 mb-1">{insight.title}</div>
+                <p className="text-sm text-slate-600">{insight.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!showFeedback ? (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/30 shadow-sm">
+          <label htmlFor="journal-entry" className="block font-semibold text-slate-800 mb-3">
+            Today's entry
+          </label>
+          <textarea
+            id="journal-entry"
+            value={entry}
+            onChange={(e) => setEntry(e.target.value)}
+            placeholder="Start writing what is on your mind..."
+            className="w-full min-h-64 rounded-xl border border-slate-200 p-4 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-slate-500">
+              {savedAt ? `Last saved at ${savedAt.toLocaleTimeString()}` : "Not saved yet"}
+            </p>
+            <div className="flex items-center gap-2">
+              {entries.length > 0 && (
+                <button
+                  onClick={() => setShowFeedback(true)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors"
+                >
+                  Show Previous Feedback ({entries.length})
+                </button>
+              )}
+              <button
+                onClick={handleSave}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold hover:shadow-lg transition-shadow"
+              >
+                Save Entry
+              </button>
             </div>
-          ))}
+          </div>
         </div>
+      ) : (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/30 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-slate-800">Previous Feedback</h3>
+            <button
+              onClick={() => setShowFeedback(false)}
+              className="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 font-semibold hover:bg-slate-300 transition-colors"
+            >
+              Back to Entry
+            </button>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {REPORT_INSIGHTS.map((insight) => (
-            <div key={insight.title} className="rounded-2xl border border-slate-100 p-4 bg-gradient-to-br from-white to-slate-50/70">
-              <div className="text-xl mb-2">{insight.icon}</div>
-              <div className="font-semibold text-slate-800 mb-1">{insight.title}</div>
-              <p className="text-sm text-slate-600">{insight.description}</p>
+          {entries.length === 0 ? (
+            <p className="text-slate-600 text-center py-8">No previous entries saved yet.</p>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+              {entries.map((savedEntry) => (
+                <div
+                  key={savedEntry.id}
+                  className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-slate-100"
+                >
+                  <p className="text-slate-800 leading-relaxed">{savedEntry.message}</p>
+                  <p className="text-xs text-slate-500 mt-2">
+                    {savedEntry.timestamp.toLocaleDateString()} at {savedEntry.timestamp.toLocaleTimeString()}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      </div>
-
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/30 shadow-sm">
-        <label htmlFor="journal-entry" className="block font-semibold text-slate-800 mb-3">
-          Today's entry
-        </label>
-        <textarea
-          id="journal-entry"
-          value={entry}
-          onChange={(e) => setEntry(e.target.value)}
-          placeholder="Start writing what is on your mind..."
-          className="w-full min-h-64 rounded-xl border border-slate-200 p-4 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-slate-500">
-            {savedAt ? `Last saved at ${savedAt.toLocaleTimeString()}` : "Not saved yet"}
-          </p>
-          <button
-            onClick={handleSave}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold hover:shadow-lg transition-shadow"
-          >
-            Save Entry
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
