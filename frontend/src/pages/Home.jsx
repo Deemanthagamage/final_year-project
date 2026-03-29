@@ -326,7 +326,11 @@ export default function Home({ onStart, theme }) {
             <p className="text-slate-600 mb-6 max-w-2xl mx-auto">
               Join thousands who have found peace and balance through daily mindfulness practices and supportive conversations.
             </p>
-            <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+            <button
+              type="button"
+              onClick={() => onStart("chat")}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+            >
               Start Your First Session
             </button>
           </div>
