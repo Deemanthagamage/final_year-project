@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Journal from "./pages/Journal";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Assessment from "./pages/Assessment";
 
 export default function App() {
   const [route, setRoute] = useState("home");
@@ -97,6 +98,8 @@ export default function App() {
         showNotificationMessage("Your AI companion is ready to chat! 🤖", "info");
       } else if (r === "journal") {
         showNotificationMessage("Take a mindful pause and write your thoughts 📝", "info");
+      } else if (r === "assessment") {
+        showNotificationMessage("Let's assess your mental health and stress levels 📊", "info");
       }
     }, 600);
   }
@@ -132,6 +135,7 @@ export default function App() {
   const routeConfig = {
     home: { component: <Home onStart={setRoute} theme={theme} />, animation: "slide-in-left" },
     mood: { component: <MoodCheck onResult={handleEmotionResult} />, animation: "slide-in-right" },
+    assessment: { component: <Assessment user={user} onNavigate={handleNav} />, animation: "slide-in-up" },
     chat: { component: <Chatbot onNavigate={handleNav} />, animation: "slide-in-up" },
     journal: { component: <Journal />, animation: "slide-in-up" },
     dashboard: { component: <Dashboard emotion={emotion} user={user} />, animation: "slide-in-down" },
