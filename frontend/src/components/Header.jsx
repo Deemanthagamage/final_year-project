@@ -7,7 +7,7 @@ export default function Header({ onNav, theme, onToggleTheme, user, onLogout }) 
         <h1 className="text-2xl font-semibold">DivineMind — Mental Health</h1>
         <nav className="space-x-4 flex items-center">
           <button onClick={() => onNav("home")} className="px-3 py-2 rounded hover:bg-white/20">Home</button>
-          <button onClick={() => { console.log('Check Mood clicked'); onNav("mood"); }} className="px-3 py-2 rounded hover:bg-white/20">Check Mood</button>
+          <button onClick={() => { console.log('Check Mood clicked'); onNav("assessment"); }} className="px-3 py-2 rounded hover:bg-white/20">Check Mood</button>
           <button onClick={() => onNav("assessment")} className="px-3 py-2 rounded hover:bg-white/20">Assessment</button>
           <button onClick={() => onNav("chat")} className="px-3 py-2 rounded hover:bg-white/20">Chat</button>
           <button onClick={() => onNav("dashboard")} className="px-3 py-2 rounded hover:bg-white/20">Dashboard</button>

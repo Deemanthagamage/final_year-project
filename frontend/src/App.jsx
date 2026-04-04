@@ -235,7 +235,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Background Pattern */}
+      {/* Background Pattern */}z
       <div className="fixed inset-0 pointer-events-none opacity-5">
         <div className="absolute inset-0" style={{
           backgroundImage: `radial-gradient(circle at 1px 1px, rgba(100, 116, 139, 0.15) 1px, transparent 0)`,

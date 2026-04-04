@@ -86,7 +86,7 @@ export default function Home({ onStart, theme }) {
     }
 
     if (toolType === "grounding") {
-      onStart("mood");
+      onStart("assessment");
     }
   };
 
@@ -173,7 +173,7 @@ export default function Home({ onStart, theme }) {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button 
-                onClick={() => onStart("mood")}
+                onClick={() => onStart("assessment")}
                 className="group relative bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -184,7 +184,7 @@ export default function Home({ onStart, theme }) {
               </button>
 
               <button 
-                onClick={() => onStart("mood")}
+                onClick={() => onStart("assessment")}
                 className="group bg-white/80 backdrop-blur-sm text-slate-700 px-8 py-4 rounded-2xl font-semibold border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 hover:bg-white transform hover:scale-105 transition-all duration-300"
               >
                 <span className="flex items-center justify-center space-x-2">

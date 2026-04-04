@@ -6,13 +6,13 @@ dotenv.config();
 
 // Pre-defined mental health assessment questions
 const ASSESSMENT_QUESTIONS = [
-  "How often have you been upset because of something that happened unexpectedly in the last month?",
+  "In the past month, how often were you upset by unexpected events?",
   "how often have you felt that you were unable to control the importtant things in your life in the last month?",
   "how often have you felt nervous and stressed in the last month?",
   "how often have you felt confident about your ability to handle your personal problems in the last month?",
   "how often have you felt that things were going your way in the last month?",
   "how often have you found that you could not cope with all the things that you had to do in the last month?",
-  "how often have you found that you could not cope with  all thee things that you had to do in the last month?",
+  "How often have you been angered because of things that happened that were outside of your control in the last month",
   "how often have you felt that you were on top of things in the last month?",
   "how often have you felt difficulties were pilling up so high that you could not overcome them in the last month?",
   "how often have you felt that were you were unable to control your anger in the last month?"

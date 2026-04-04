@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { DarkModeContext } from '../contexts/DarkModeContext'; // Assuming you create this context
 
 const Assessment = ({ user, onNavigate }) => {
+  const { isDarkMode } = useContext(DarkModeContext);
   const [sessionId, setSessionId] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
@@ -139,52 +141,23 @@ const Assessment = ({ user, onNavigate }) => {
 
   if (assessmentCompleted && result) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 p-6 md:p-8">
-        <div className="max-w-2xl mx-auto">
-          <div className={`rounded-3xl bg-gradient-to-br from-${result.color}-50 to-${result.color}-100 border-2 border-${result.color}-200 p-8 md:p-12`}>
-            <div className="text-center mb-8">
-              <div className={`w-24 h-24 bg-${result.color}-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`}>
-                <span className="text-5xl">
-                  {result.percentage}%
-                </span>
+      <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+        <div className={`w-full max-w-2xl p-8 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
+          <div className="text-center">
+            <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Assessment Complete</h1>
+            {result && (
+              <div className={`p-6 rounded-lg ${isDarkMode ? 'bg-gray-600' : 'bg-gray-100'}`}>
+                <h2 className={`text-2xl font-semibold text-${result.color}-500`}>{result.stressLevel}</h2>
+                <p className={`mt-2 mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{result.recommendation}</p>
+                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Your Score: {result.totalScore}/{result.maxScore}</p>
               </div>
-              <h2 className={`text-4xl font-bold text-${result.color}-900 mb-2`}>
-                {result.stressLevel}
-              </h2>
-              <p className={`text-lg text-${result.color}-800 mb-6`}>
-                Score: {result.totalScore} / {result.maxScore}
-              </p>
-            </div>
-
-            <div className={`bg-white/60 backdrop-blur rounded-2xl p-6 mb-8 border border-${result.color}-200`}>
-              <h3 className={`text-lg font-semibold text-${result.color}-900 mb-3`}>
-                Recommendation
-              </h3>
-              <p className={`text-${result.color}-800 leading-relaxed`}>
-                {result.recommendation}
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <button
-                onClick={resetAssessment}
-                className={`w-full px-6 py-3 bg-${result.color}-600 hover:bg-${result.color}-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg`}
-              >
-                Retake Assessment
-              </button>
-              <button
-                onClick={goToDashboard}
-                className="w-full px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
-              >
-                Back to Dashboard
-              </button>
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-white/40">
-              <p className="text-xs text-slate-600 text-center">
-                Assessment completed on {result.completedAt}
-              </p>
-            </div>
+            )}
+            <button
+              onClick={() => onNavigate('dashboard')}
+              className="mt-6 bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-600 transition"
+            >
+              Back to Dashboard
+            </button>
           </div>
         </div>
       </div>
@@ -193,56 +166,21 @@ const Assessment = ({ user, onNavigate }) => {
 
   if (!assessmentStarted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 p-6 md:p-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="rounded-3xl bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 p-8 md:p-12">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <span className="text-4xl">📋</span>
-              </div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-4">
-                Mental Health Assessment
-              </h1>
-              <p className="text-xl text-slate-700 mb-6 leading-relaxed">
-                Take a quick self-assessment to understand your current stress levels and mental wellness. This 9-question assessment will help us provide personalized recommendations for your mental health journey.
-              </p>
-
-              <div className="bg-white/60 backdrop-blur rounded-2xl p-6 mb-8 border border-blue-200">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4">What to expect:</h3>
-                <ul className="text-left space-y-2 text-slate-700">
-                  <li className="flex items-center">
-                    <span className="text-blue-500 mr-3 font-bold">✓</span>
-                    9 simple questions about your stress levels
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-blue-500 mr-3 font-bold">✓</span>
-                    Rate each on a scale from "Never" to "Very Often"
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-blue-500 mr-3 font-bold">✓</span>
-                    Takes approximately 3-5 minutes
-                  </li>
-                  <li className="flex items-center">
-                    <span className="text-blue-500 mr-3 font-bold">✓</span>
-                    Receive personalized insights and recommendations
-                  </li>
-                </ul>
-              </div>
-
-              {error && (
-                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
-                  {error}
-                </div>
-              )}
-
-              <button
-                onClick={startAssessment}
-                disabled={loading}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-lg font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
-              >
-                {loading ? 'Starting...' : 'Start Assessment'}
-              </button>
-            </div>
+      <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+        <div className={`w-full max-w-2xl p-8 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
+          <div className="text-center">
+            <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Mental Wellness Assessment</h1>
+            <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              This short assessment will help you understand your current stress levels.
+            </p>
+            <button
+              onClick={startAssessment}
+              className="bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-600 transition"
+              disabled={loading}
+            >
+              {loading ? 'Starting...' : 'Start Assessment'}
+            </button>
+            {error && <p className="text-red-500 mt-4">{error}</p>}
           </div>
         </div>
       </div>
@@ -250,56 +188,58 @@ const Assessment = ({ user, onNavigate }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20 p-6 md:p-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-sm font-semibold text-slate-600">
-              Question {currentQuestionIndex + 1} of {ASSESSMENT_QUESTIONS.length}
-            </h2>
-            <span className="text-sm font-semibold text-slate-600">
-              {Math.round(((currentQuestionIndex + 1) / ASSESSMENT_QUESTIONS.length) * 100)}%
-            </span>
+    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+      <div className={`w-full max-w-2xl p-8 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
+        {!assessmentStarted ? (
+          <div className="text-center">
+            <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Mental Wellness Assessment</h1>
+            <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              This short assessment will help you understand your current stress levels.
+            </p>
+            <button
+              onClick={startAssessment}
+              className="bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-600 transition"
+              disabled={loading}
+            >
+              {loading ? 'Starting...' : 'Start Assessment'}
+            </button>
+            {error && <p className="text-red-500 mt-4">{error}</p>}
           </div>
-          <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-500"
-              style={{ width: `${((currentQuestionIndex + 1) / ASSESSMENT_QUESTIONS.length) * 100}%` }}
-            ></div>
+        ) : !assessmentCompleted ? (
+          <div>
+            <h2 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Question {currentQuestionIndex + 1}/{ASSESSMENT_QUESTIONS.length}</h2>
+            <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{ASSESSMENT_QUESTIONS[currentQuestionIndex]}</p>
+            <div className="flex justify-around">
+              {SCALE_OPTIONS.map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => handleAnswer(option.value)}
+                  className={`flex flex-col items-center p-2 rounded-lg transition ${isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
+                >
+                  <span className={`text-3xl ${option.color}`}>{option.icon}</span>
+                  <span className={`mt-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{option.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-
-        {/* Question Card */}
-        <div className="rounded-3xl bg-white/80 backdrop-blur-lg shadow-2xl border border-white/20 p-8 md:p-12 mb-8">
-          <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-8 leading-relaxed">
-            {ASSESSMENT_QUESTIONS[currentQuestionIndex]}
-          </h3>
-
-          {/* Response Options */}
-          <div className="space-y-3">
-            {SCALE_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => handleAnswer(option.value)}
-                disabled={loading}
-                className={`w-full p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 flex items-center justify-between font-semibold ${
-                  answers[currentQuestionIndex]?.score === option.value
-                    ? `${option.color} text-white border-transparent`
-                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                <span className="text-lg">{option.label}</span>
-                <span className="text-2xl">{option.icon}</span>
-              </button>
-            ))}
+        ) : (
+          <div className="text-center">
+            <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Assessment Complete</h1>
+            {result && (
+              <div className={`p-6 rounded-lg ${isDarkMode ? 'bg-gray-600' : 'bg-gray-100'}`}>
+                <h2 className={`text-2xl font-semibold text-${result.color}-500`}>{result.stressLevel}</h2>
+                <p className={`mt-2 mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{result.recommendation}</p>
+                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Your Score: {result.totalScore}/{result.maxScore}</p>
+              </div>
+            )}
+            <button
+              onClick={() => onNavigate('dashboard')}
+              className="mt-6 bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-600 transition"
+            >
+              Back to Dashboard
+            </button>
           </div>
-        </div>
-
-        {/* Navigation Info */}
-        <div className="text-center text-sm text-slate-600">
-          Your answer will be saved automatically
-        </div>
+        )}
       </div>
     </div>
   );
