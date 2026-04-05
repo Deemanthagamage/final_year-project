@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import BreathingExercise from "../components/BreathingExercise";
+import GuidedMeditation from "../components/GuidedMeditation";
 
 /* =========================
    WELLNESS ACTIVITIES
@@ -22,15 +24,10 @@ const WELLNESS_ACTIVITIES = [
   }
 ];
 
-const ACTIVITY_GUIDES = {
-  "Breathing Exercise": "Follow inhale → hold → exhale cycle slowly.",
-  "Guided Meditation": "Close your eyes and focus on your breathing."
-};
-
 /* =========================
    MAIN DASHBOARD
 ========================= */
-export default function MindSpaceDashboard({ user }) {
+export default function Dashboard({ user }) {
   const [userStats, setUserStats] = useState({
     moodTrend: 0,
     consistency: 0,
@@ -43,11 +40,10 @@ export default function MindSpaceDashboard({ user }) {
   });
 
   const [selectedActivity, setSelectedActivity] = useState(null);
-  const [showActivityGuide, setShowActivityGuide] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  /* ===== Load user + stats ===== */
+  /* ===== Load user stats and dark mode ===== */
   useEffect(() => {
     const savedData = localStorage.getItem("mindData");
     if (savedData) setUserStats(JSON.parse(savedData));
@@ -73,20 +69,18 @@ export default function MindSpaceDashboard({ user }) {
       const savedData = localStorage.getItem("mindData");
       if (savedData) setUserStats(JSON.parse(savedData));
     };
-
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  /* ===== Dark mode ===== */
+  /* ===== Dark mode toggle ===== */
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
-
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [darkMode]);
 
-  /* ===== Update stats ===== */
+  /* ===== Update stats after assessment ===== */
   const updateAfterAssessment = (result) => {
     const { moodScore, stressScore, anxietyScore } = result;
     const today = new Date().toISOString().split("T")[0];
@@ -162,13 +156,10 @@ export default function MindSpaceDashboard({ user }) {
     );
 
   const displayName =
-    user?.name ||
-    JSON.parse(localStorage.getItem("user"))?.name ||
-    "User";
+    user?.name || JSON.parse(localStorage.getItem("user"))?.name || "User";
 
   return (
     <div className="min-h-screen p-6 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-gray-900 dark:to-gray-800 text-gray-800 dark:text-white">
-      
       {/* ===== Header ===== */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -231,10 +222,7 @@ export default function MindSpaceDashboard({ user }) {
           {WELLNESS_ACTIVITIES.map((activity) => (
             <div
               key={activity.id}
-              onClick={() => {
-                setSelectedActivity(activity);
-                setShowActivityGuide(false);
-              }}
+              onClick={() => setSelectedActivity(activity)}
               className={`p-4 rounded-2xl text-white cursor-pointer bg-gradient-to-r ${activity.color}`}
             >
               <h3>{activity.icon} {activity.name}</h3>
@@ -262,32 +250,15 @@ export default function MindSpaceDashboard({ user }) {
         </div>
       </div>
 
-      {/* ===== Modal ===== */}
+      {/* ===== Activity Modal ===== */}
       {selectedActivity && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl w-80">
-            <h3>{selectedActivity.name}</h3>
-
-            {!showActivityGuide ? (
-              <button
-                onClick={() => setShowActivityGuide(true)}
-                className="bg-blue-500 text-white w-full py-2 mt-4"
-              >
-                Start
-              </button>
-            ) : (
-              <p className="mt-4">
-                {ACTIVITY_GUIDES[selectedActivity.name]}
-              </p>
-            )}
-
-            <button
-              onClick={() => setSelectedActivity(null)}
-              className="mt-4 text-red-500 w-full"
-            >
-              Close
-            </button>
-          </div>
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center p-4">
+          {selectedActivity.name === "Breathing Exercise" && (
+            <BreathingExercise onClose={() => setSelectedActivity(null)} />
+          )}
+          {selectedActivity.name === "Guided Meditation" && (
+            <GuidedMeditation onClose={() => setSelectedActivity(null)} />
+          )}
         </div>
       )}
     </div>
