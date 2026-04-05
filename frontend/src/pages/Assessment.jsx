@@ -1,243 +1,160 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { DarkModeContext } from '../contexts/DarkModeContext'; // Assuming you create this context
+import React, { useState, useContext } from "react";
+import { DarkModeContext } from "../contexts/DarkModeContext";
 
 const Assessment = ({ user, onNavigate }) => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const [sessionId, setSessionId] = useState(null);
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [assessmentStarted, setAssessmentStarted] = useState(false);
-  const [assessmentCompleted, setAssessmentCompleted] = useState(false);
-  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const ASSESSMENT_QUESTIONS = [
-    "How often have you been upset because of something that happened unexpectedly in the last month?",
-    "How often have you felt that you were unable to control the important things in your life in the last month?",
-    "How often have you felt nervous and stressed in the last month?",
-    "How often have you felt confident about your ability to handle your personal problems in the last month?",
-    "How often have you felt that things were going your way in the last month?",
-    "How often have you found that you could not cope with all the things that you had to do in the last month?",
-    "How often have you felt that you were on top of things in the last month?",
-    "How often have you felt difficulties were piling up so high that you could not overcome them in the last month?",
-    "How often have you felt that you were unable to control your anger in the last month?"
+  const QUESTIONS = [
+    "How often have you been upset because of something unexpected?",
+    "How often did you feel unable to control important things?",
+    "How often have you felt nervous and stressed?",
+    "How often have you felt confident handling problems?",
+    "How often did things go your way?",
+    "How often could you not cope with tasks?",
+    "How often did you feel on top of things?",
+    "How often did difficulties pile up too high?",
+    "How often could you not control your anger?"
   ];
 
-  const SCALE_OPTIONS = [
-    { value: 0, label: 'Never', color: 'bg-green-500', icon: '😊' },
-    { value: 1, label: 'Almost Never', color: 'bg-lime-500', icon: '🙂' },
-    { value: 2, label: 'Sometimes', color: 'bg-yellow-500', icon: '😐' },
-    { value: 3, label: 'Fairly Often', color: 'bg-orange-500', icon: '😟' },
-    { value: 4, label: 'Very Often', color: 'bg-red-500', icon: '😢' }
+  const OPTIONS = [
+    { value: 0, label: "Never", emoji: "😊" },
+    { value: 1, label: "Rarely", emoji: "🙂" },
+    { value: 2, label: "Sometimes", emoji: "😐" },
+    { value: 3, label: "Often", emoji: "😟" },
+    { value: 4, label: "Very Often", emoji: "😢" }
   ];
 
-  const startAssessment = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const newSessionId = 'assessment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      setSessionId(newSessionId);
-      setAssessmentStarted(true);
-      setCurrentQuestionIndex(0);
-      setAnswers([]);
-    } catch (err) {
-      setError('Failed to start assessment. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+  const startAssessment = () => {
+    setAssessmentStarted(true);
+    setCurrentQuestionIndex(0);
+    setAnswers([]);
   };
 
   const handleAnswer = (score) => {
-    const newAnswers = [...answers];
-    newAnswers[currentQuestionIndex] = {
-      questionIndex: currentQuestionIndex,
-      question: ASSESSMENT_QUESTIONS[currentQuestionIndex],
-      score: score,
-      label: SCALE_OPTIONS.find(opt => opt.value === score)?.label
-    };
-    setAnswers(newAnswers);
+    const updated = [...answers];
+    updated[currentQuestionIndex] = score;
+    setAnswers(updated);
 
-    if (currentQuestionIndex < ASSESSMENT_QUESTIONS.length - 1) {
+    if (currentQuestionIndex < QUESTIONS.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      completeAssessment(newAnswers);
+      completeAssessment(updated);
     }
   };
 
-  const completeAssessment = async (finalAnswers) => {
-    try {
-      setLoading(true);
-      const totalScore = finalAnswers.reduce((sum, ans) => sum + (ans?.score || 0), 0);
-      const maxScore = ASSESSMENT_QUESTIONS.length * 4;
-      const percentage = Math.round((totalScore / maxScore) * 100);
+  const completeAssessment = (finalAnswers) => {
+    setLoading(true);
 
-      let stressLevel = '';
-      let recommendation = '';
-      let color = '';
+    const total = finalAnswers.reduce((a, b) => a + b, 0);
+    const max = QUESTIONS.length * 4;
+    const percentage = Math.round((total / max) * 100);
 
-      if (percentage <= 25) {
-        stressLevel = 'Low Stress';
-        recommendation = 'Great job! You seem to be managing stress well. Keep up your healthy habits!';
-        color = 'emerald';
-      } else if (percentage <= 50) {
-        stressLevel = 'Moderate Stress';
-        recommendation = 'You are experiencing moderate stress. Consider trying relaxation techniques like meditation or exercise.';
-        color = 'amber';
-      } else if (percentage <= 75) {
-        stressLevel = 'High Stress';
-        recommendation = 'You are experiencing high stress. We recommend talking to a counselor or practicing mindfulness exercises.';
-        color = 'orange';
-      } else {
-        stressLevel = 'Very High Stress';
-        recommendation = 'You are experiencing very high stress. Please consider reaching out to a mental health professional for support.';
-        color = 'red';
+    // 🔥 Convert to dashboard format
+    const dashboardData = {
+      moodScore: 100 - percentage,
+      stressScore: percentage,
+      anxietyScore: Math.round(percentage * 0.8)
+    };
+
+    // ✅ Save for dashboard
+    localStorage.setItem("assessmentResult", JSON.stringify(dashboardData));
+
+    // ✅ Save history
+    const history = JSON.parse(localStorage.getItem("assessments") || "[]");
+    history.push({
+      date: new Date().toISOString(),
+      percentage
+    });
+    localStorage.setItem("assessments", JSON.stringify(history));
+
+    // 🚀 Navigate to dashboard
+    setTimeout(() => {
+      if (onNavigate) {
+        onNavigate("dashboard", dashboardData);
       }
-
-      const assessmentResult = {
-        sessionId,
-        userId: user?.id,
-        totalScore,
-        maxScore,
-        percentage,
-        stressLevel,
-        recommendation,
-        color,
-        answers: finalAnswers,
-        completedAt: new Date().toLocaleString()
-      };
-
-      setResult(assessmentResult);
-      setAssessmentCompleted(true);
-
-      // Save to localStorage
-      const previousAssessments = JSON.parse(localStorage.getItem('assessments') || '[]');
-      previousAssessments.push(assessmentResult);
-      localStorage.setItem('assessments', JSON.stringify(previousAssessments));
-    } catch (err) {
-      setError('Failed to complete assessment. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    }, 1000);
   };
 
-  const resetAssessment = () => {
-    setSessionId(null);
-    setCurrentQuestionIndex(0);
-    setAnswers([]);
-    setAssessmentStarted(false);
-    setAssessmentCompleted(false);
-    setResult(null);
-    setError(null);
-  };
+  /* ================= UI ================= */
 
-  const goToDashboard = () => {
-    if (onNavigate) {
-      onNavigate('dashboard');
-    }
-  };
-
-  if (assessmentCompleted && result) {
-    return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-        <div className={`w-full max-w-2xl p-8 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
-          <div className="text-center">
-            <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Assessment Complete</h1>
-            {result && (
-              <div className={`p-6 rounded-lg ${isDarkMode ? 'bg-gray-600' : 'bg-gray-100'}`}>
-                <h2 className={`text-2xl font-semibold text-${result.color}-500`}>{result.stressLevel}</h2>
-                <p className={`mt-2 mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{result.recommendation}</p>
-                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Your Score: {result.totalScore}/{result.maxScore}</p>
-              </div>
-            )}
-            <button
-              onClick={() => onNavigate('dashboard')}
-              className="mt-6 bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-600 transition"
-            >
-              Back to Dashboard
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // ===== START SCREEN =====
   if (!assessmentStarted) {
     return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-        <div className={`w-full max-w-2xl p-8 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
-          <div className="text-center">
-            <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Mental Wellness Assessment</h1>
-            <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              This short assessment will help you understand your current stress levels.
-            </p>
-            <button
-              onClick={startAssessment}
-              className="bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-600 transition"
-              disabled={loading}
-            >
-              {loading ? 'Starting...' : 'Start Assessment'}
-            </button>
-            {error && <p className="text-red-500 mt-4">{error}</p>}
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+        <div className="backdrop-blur-lg bg-white/20 border border-white/30 p-10 rounded-3xl shadow-2xl text-center max-w-md w-full">
+          
+          <h1 className="text-4xl font-bold text-white mb-4">
+            MindSpace 🧠
+          </h1>
+
+          <p className="text-white/80 mb-6">
+            Discover your stress level and improve your mental wellness
+          </p>
+
+          <button
+            onClick={startAssessment}
+            className="bg-white text-purple-600 font-semibold px-8 py-3 rounded-full shadow-lg hover:scale-105 hover:bg-purple-100 transition"
+          >
+            Start Assessment →
+          </button>
         </div>
       </div>
     );
   }
 
+  // ===== QUESTIONS UI =====
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-      <div className={`w-full max-w-2xl p-8 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
-        {!assessmentStarted ? (
-          <div className="text-center">
-            <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Mental Wellness Assessment</h1>
-            <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              This short assessment will help you understand your current stress levels.
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      
+      <div className="w-full max-w-2xl p-8 rounded-3xl backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl text-white">
+        
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm mb-2">
+            <span>Question {currentQuestionIndex + 1}</span>
+            <span>{QUESTIONS.length}</span>
+          </div>
+          <div className="w-full bg-white/20 h-2 rounded-full">
+            <div
+              className="h-2 rounded-full bg-gradient-to-r from-pink-400 to-purple-400 transition-all duration-500"
+              style={{
+                width: `${((currentQuestionIndex + 1) / QUESTIONS.length) * 100}%`
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Question */}
+        <h2 className="text-2xl font-semibold mb-6 text-center leading-relaxed">
+          {QUESTIONS[currentQuestionIndex]}
+        </h2>
+
+        {/* Options */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => handleAnswer(opt.value)}
+              className="flex flex-col items-center p-4 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md transition transform hover:scale-110 shadow-lg"
+            >
+              <span className="text-3xl">{opt.emoji}</span>
+              <span className="mt-2 text-sm">{opt.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Loading */}
+        {loading && (
+          <div className="mt-6 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+            <p className="mt-2 text-white/80">
+              Analyzing your results...
             </p>
-            <button
-              onClick={startAssessment}
-              className="bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-600 transition"
-              disabled={loading}
-            >
-              {loading ? 'Starting...' : 'Start Assessment'}
-            </button>
-            {error && <p className="text-red-500 mt-4">{error}</p>}
-          </div>
-        ) : !assessmentCompleted ? (
-          <div>
-            <h2 className={`text-xl font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Question {currentQuestionIndex + 1}/{ASSESSMENT_QUESTIONS.length}</h2>
-            <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{ASSESSMENT_QUESTIONS[currentQuestionIndex]}</p>
-            <div className="flex justify-around">
-              {SCALE_OPTIONS.map(option => (
-                <button
-                  key={option.value}
-                  onClick={() => handleAnswer(option.value)}
-                  className={`flex flex-col items-center p-2 rounded-lg transition ${isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
-                >
-                  <span className={`text-3xl ${option.color}`}>{option.icon}</span>
-                  <span className={`mt-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{option.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="text-center">
-            <h1 className={`text-3xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Assessment Complete</h1>
-            {result && (
-              <div className={`p-6 rounded-lg ${isDarkMode ? 'bg-gray-600' : 'bg-gray-100'}`}>
-                <h2 className={`text-2xl font-semibold text-${result.color}-500`}>{result.stressLevel}</h2>
-                <p className={`mt-2 mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{result.recommendation}</p>
-                <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>Your Score: {result.totalScore}/{result.maxScore}</p>
-              </div>
-            )}
-            <button
-              onClick={() => onNavigate('dashboard')}
-              className="mt-6 bg-blue-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-600 transition"
-            >
-              Back to Dashboard
-            </button>
           </div>
         )}
       </div>
